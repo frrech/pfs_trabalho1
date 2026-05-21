@@ -7,7 +7,7 @@ Esse projeto implementa um sistema simples de e-shop com autenticação com JWT.
 ## Pré-configuração
 
 1 - Crie um arquivo .env no diretório raiz do projeto
-'''
+```
 # Database Configuration
 DB_HOST=localhost
 DB_PORT=5432
@@ -20,5 +20,5 @@ DB_TYPE=postgres
 NODE_ENV=development
 
 token_secret=your_secret
-'''
+```
 2 - Crie um banco de dados no Postgres/sqlite
