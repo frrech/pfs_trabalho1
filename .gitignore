@@ -4,5 +4,6 @@ node_modules/
 build/
 tmp/
 temp/
-.env
-.DS_Store
+*/.env
+.env.*
+*/.DS_Store
