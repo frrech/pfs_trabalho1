@@ -1,8 +1,8 @@
-import dotenv from "dotenv"
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-import "reflect-metadata"
-import { DataSource } from "typeorm"
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
 import { Produto } from "./entity/Produto"
 import { Categoria } from "./entity/Categoria"
 import { User } from "./entity/User"
