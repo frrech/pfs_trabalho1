@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { BadRequestException, Controller, Post, Body, UseGuards, Request, Get, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -9,6 +9,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @HttpCode(201)
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.authService.register(
       registerDto.name,
@@ -41,12 +42,12 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refreshToken(@Body() body: { token: string }) {
-    if (!body.token) {
-      throw new Error('Token não fornecido');
+  async refreshToken(@Body('token') token: string) {
+    if (!token) {
+      throw new BadRequestException('Token não fornecido');
     }
 
-    const newToken = this.authService.refreshToken(body.token);
+    const newToken = this.authService.refreshToken(token);
 
     return {
       message: 'Token renovado com sucesso',

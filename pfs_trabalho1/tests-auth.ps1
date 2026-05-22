@@ -1,6 +1,9 @@
-$BASE_URL = "http://localhost:3000"
+$BASE_URL = "http://localhost:3000/api"
 $TOKEN = $null
 $USER_ID = $null
+
+$uniqueSuffix = Get-Date -Format 'yyyyMMddHHmmss'
+$TEST_EMAIL = "joao.test.$uniqueSuffix@example.com"
 
 function Invoke-Api {
     [CmdletBinding()]
@@ -82,7 +85,7 @@ Write-Host "=== AUTHENTICATION TESTS ===" -ForegroundColor Magenta
 
 $registerResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/register" -Body @{
     name = "João Silva"
-    email = "joao.test@example.com"
+    email = $TEST_EMAIL
     password = "senha123"
 }
 Print-Result 1 "REGISTER USER" $registerResult "201"
@@ -92,13 +95,13 @@ if ($registerResult.Status -in 200,201 -and $registerResult.Body.user) {
 
 $duplicateResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/register" -Body @{
     name = "Outro"
-    email = "joao.test@example.com"
+    email = $TEST_EMAIL
     password = "senha456"
 }
 Print-Result 2 "REGISTER DUPLICATE EMAIL (should fail)" $duplicateResult "409"
 
 $loginResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/login" -Body @{
-    email = "joao.test@example.com"
+    email = $TEST_EMAIL
     password = "senha123"
 }
 Print-Result 3 "LOGIN - VALID CREDENTIALS" $loginResult "200"
@@ -107,7 +110,7 @@ if ($loginResult.Status -eq 200 -and $loginResult.Body.token) {
 }
 
 $wrongLogin = Invoke-Api -Method POST -Uri "$BASE_URL/auth/login" -Body @{
-    email = "joao.test@example.com"
+    email = $TEST_EMAIL
     password = "wrongPassword"
 }
 Print-Result 4 "LOGIN - WRONG PASSWORD (should fail)" $wrongLogin "401"
@@ -118,7 +121,9 @@ Print-Result 5 "GET CURRENT USER (/auth/me)" $meResult "200"
 $noTokenUsers = Invoke-Api -Method GET -Uri "$BASE_URL/users"
 Print-Result 6 "USERS LIST WITHOUT TOKEN (should fail)" $noTokenUsers "401"
 
-$refreshResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/refresh" -Token $TOKEN
+$refreshResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/refresh" -Body @{
+    token = $TOKEN
+}
 Print-Result 7 "REFRESH TOKEN" $refreshResult "200"
 if ($refreshResult.Status -eq 200 -and $refreshResult.Body.token) {
     $TOKEN = $refreshResult.Body.token
@@ -126,23 +131,23 @@ if ($refreshResult.Status -eq 200 -and $refreshResult.Body.token) {
 
 Write-Host "=== PUBLIC ROUTES ===" -ForegroundColor Magenta
 
-$catResult = Invoke-Api -Method POST -Uri "$BASE_URL/categorias" -Body @{
+$catResult = Invoke-Api -Method POST -Uri "$BASE_URL/categoria" -Body @{
     nome = "Eletrônicos Test"
 }
 Print-Result 8 "CREATE CATEGORIA" $catResult "201"
 
-$listCatResult = Invoke-Api -Method GET -Uri "$BASE_URL/categorias"
+$listCatResult = Invoke-Api -Method GET -Uri "$BASE_URL/categoria"
 Print-Result 9 "LIST CATEGORIAS" $listCatResult "200"
 
-$prodResult = Invoke-Api -Method POST -Uri "$BASE_URL/produtos" -Body @{
+$prodResult = Invoke-Api -Method POST -Uri "$BASE_URL/produto" -Body @{
     nome = "Notebook Test"
     preco = 3500
     quantidade = 5
-    categoria = @{ id = 1 }
+    categoria = 1
 }
 Print-Result 10 "CREATE PRODUTO" $prodResult "201"
 
-$listProdResult = Invoke-Api -Method GET -Uri "$BASE_URL/produtos"
+$listProdResult = Invoke-Api -Method GET -Uri "$BASE_URL/produto"
 Print-Result 11 "LIST PRODUTOS" $listProdResult "200"
 
 Write-Host "=== PROTECTED ROUTES ===" -ForegroundColor Magenta
@@ -156,7 +161,7 @@ if ($USER_ID) {
     
     $updateUserResult = Invoke-Api -Method PUT -Uri "$BASE_URL/users/$USER_ID" -Token $TOKEN -Body @{
         name = "João da Silva Updated"
-        email = "joao.silva.updated@example.com"
+        email = "joao.silva.updated.$uniqueSuffix@example.com"
         password = "novasenha123"
     }
     Print-Result 14 "UPDATE USER" $updateUserResult "200"
@@ -168,6 +173,8 @@ if ($USER_ID) {
 $pedidoResult = Invoke-Api -Method POST -Uri "$BASE_URL/pedidos" -Token $TOKEN -Body @{
     descricao = "Pedido Notebook"
     produtos = @(@{ id = 1 })
+    user = @{ id = $USER_ID }
+    total = 3500
 }
 Print-Result 15 "CREATE PEDIDO" $pedidoResult "201"
 
@@ -187,7 +194,7 @@ Print-Result 19 "MALFORMED BEARER HEADER" $malformedBearerResult "401"
 
 $shortPassResult = Invoke-Api -Method POST -Uri "$BASE_URL/auth/register" -Body @{
     name = "Test"
-    email = "test.short@example.com"
+    email = "test.short.$uniqueSuffix@example.com"
     password = "123"
 }
 Print-Result 20 "SHORT PASSWORD (should fail)" $shortPassResult "400"

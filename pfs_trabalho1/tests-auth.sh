@@ -2,7 +2,7 @@
 
 # API Test Script with JWT Authentication
 # Base URL
-BASE_URL="http://localhost:3000"
+BASE_URL="http://localhost:3000/api"
 TOKEN=""
 USER_ID=""
 
@@ -62,26 +62,26 @@ echo -e "\n=== PUBLIC ROUTES (NO AUTH REQUIRED) ==="
 
 # Test 8: Create Categoria
 echo -e "\n[8] CREATE CATEGORIA (public)"
-catResponse=$(curl -s -X POST "$BASE_URL/categorias" \
+catResponse=$(curl -s -X POST "$BASE_URL/categoria" \
   -H "Content-Type: application/json" \
-  -d '{"id":1,"nome":"Eletrônicos"}')
+  -d '{"nome":"Eletrônicos"}')
 echo $catResponse | jq .
 
 # Test 9: List Categorias (public)
 echo -e "\n[9] LIST CATEGORIAS (public)"
-curl -s -X GET "$BASE_URL/categorias" \
+curl -s -X GET "$BASE_URL/categoria" \
   -H "Content-Type: application/json" | jq .
 
 # Test 10: Create Produto (public)
 echo -e "\n[10] CREATE PRODUTO (public)"
-prodResponse=$(curl -s -X POST "$BASE_URL/produtos" \
+prodResponse=$(curl -s -X POST "$BASE_URL/produto" \
   -H "Content-Type: application/json" \
-  -d '{"id":1,"nome":"Notebook","preco":3500,"categoria":{"id":1},"quantidade":5}')
+  -d '{"nome":"Notebook","preco":3500,"categoria":1,"quantidade":5}')
 echo $prodResponse | jq .
 
 # Test 11: List Produtos (public)
 echo -e "\n[11] LIST PRODUTOS (public)"
-curl -s -X GET "$BASE_URL/produtos" \
+curl -s -X GET "$BASE_URL/produto" \
   -H "Content-Type: application/json" | jq .
 
 # ==================== PROTECTED ROUTES ====================
@@ -164,6 +164,6 @@ echo "ALL TESTS COMPLETED"
 echo "========================================"
 echo -e "\nTest Summary:"
 echo "✓ Auth tests: Register, Login, Refresh, GetMe"
-echo "✓ Public routes: Categorias, Produtos (no auth needed)"
+echo "✓ Public routes: Categoria, Produto (no auth needed)"
 echo "✓ Protected routes: Users, Pedidos (require valid JWT)"
 echo "✓ Error cases: Missing token, invalid token, short password"

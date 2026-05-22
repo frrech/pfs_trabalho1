@@ -91,27 +91,26 @@ export class AuthService {
    * Login user and return JWT token
    */
   public async login(email: string, password: string): Promise<{ token: string; user: any }> {
-    // Validate input
     if (!email || !password) {
       throw new BadRequestException('Email e senha são obrigatórios');
     }
 
-    // Find user by email
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+
     if (!user) {
       throw new UnauthorizedException('Email ou senha incorretos');
     }
 
-    // Compare password
     const isPasswordValid = await this.comparePassword(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email ou senha incorretos');
     }
 
-    // Generate token
     const token = this.generateToken(user.id, user.email);
-
-    // Return token and user (without password)
     const userWithoutPassword = { ...user };
     delete userWithoutPassword.password;
 
